@@ -34,7 +34,6 @@ describe("A promise's .then method", function(){
 
   it('adds groups of handlers (callback functions) to the promise', function(){
     promise.then( s1, e1 );
-    console.log(typeof s1);
     expect( promise.handlerGroups[0].successCb ).toBe( s1 );
     expect( promise.handlerGroups[0].errorCb   ).toBe( e1 );
   });
@@ -100,7 +99,7 @@ describe('A promise', function(){
 
     it('calls each success handler once per attachment', function(){
       promiseForNum.then( setFoo10 );
-      console.log('starting tricky spec');
+      //console.log('starting tricky spec');
       promiseForNum.then( addToFoo );
       promiseForNum.then( addToFoo );
       

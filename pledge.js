@@ -8,24 +8,27 @@ function $Promise() {
 	this.state = 'pending' ;
 	this.handlerGroups = [];
 
-// 	this.then = function (success, rejected){
-// 	var handler = {successCb: success, errorCb: rejected}
-// 	console.log(success, rejected);
-// 	this.handlerGroups.push(handler);
-// }
 }
 
 $Promise.prototype.then = function (success, rejected){
 	var handler = {} // why handler = {successCb: success, errorCb: rejected} does not work ?
+	
+	handler.forwarder = new Deferral;
 	if (typeof success === 'function' || typeof rejected === 'function'){
-		console.log(this.handlerGroups);
+		//console.log(this.handlerGroups);
 		handler.successCb = success;
-		handler.errorCb = rejected;	
+		handler.errorCb = rejected;
 	}
 	
 	this.handlerGroups.push(handler);
-	if(this.state === 'resolved')this.callHandlers();
-	
+
+	if(this.state === 'resolved' || this.state === 'rejected')this.callHandlers();
+	handler.forwarder.$promise = this;
+	return handler.forwarder.$promise;
+}
+
+$Promise.prototype.catch = function (func){ //what does .catch do???
+	return this.then(null, func);
 }
 
 $Promise.prototype.callHandlers = function(){
@@ -36,15 +39,15 @@ $Promise.prototype.callHandlers = function(){
 		//How shift and forEach work together? Would that work with a for loop?
 		this.handlerGroups.forEach(function(handler){ // forEach creates a new scope
 			if(state === 'resolved' && handler.successCb){
-				handler.successCb(value);
+				var result = handler.successCb(value);
+				handler.forwarder.resolve(result);
 			}
 			else if(state === 'rejected' && handler.errorCb){
-				handler.errorCb(value);
+				var result = handler.errorCb(value);
+				//handler.forwarder.reject()
 			}
 		})
-	console.log("HEEEEYYYYYY");
 	this.handlerGroups = [];
-	console.log('this.handlerGroups', this.handlerGroups);
 	}
 
 	
@@ -54,6 +57,8 @@ function Deferral() {
 	this.$promise = new $Promise() ;
 	
 }
+
+//Deferral.prototype.forwarder = function (){};
 
 Deferral.prototype.resolve = function(data) {
 	if(this.$promise.state === 'pending') {
@@ -68,6 +73,7 @@ Deferral.prototype.reject = function(data) {
 	if(this.$promise.state === 'pending') {
 		this.$promise.state = 'rejected' ;
 		this.$promise.value = data ;
+		this.$promise.callHandlers();
 	}
 }
 
