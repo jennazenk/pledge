@@ -81,7 +81,7 @@ describe('For a given promiseA (pA)', function(){
     });
 
     // This is for normal (synchronous / non-promise) return values
-    xit("if pA's error handler returns a value x, pB is resolved with x", function(){
+    it("if pA's error handler returns a value x, pB is resolved with x", function(){
       /* Why resolved? This is similar to try-catch. If promiseA is
       rejected (equivalent to `try` failure), we pass the reason to
       promiseA's error handler (equivalent to `catch`). We have now
@@ -97,14 +97,14 @@ describe('For a given promiseA (pA)', function(){
 
     // Exceptions cause the returned promise to be rejected with the error.
     // Hint: you will need to use `try` & `catch` to make this work.
-    xit("if pA's success handler throws an error `e`, pB is rejected with `e`", function(){
+    it("if pA's success handler throws an error `e`, pB is rejected with `e`", function(){
       var promiseB = promiseA.then( thisThrowsErr );
       deferralA.resolve();
       expect( promiseB.state ).toBe( 'rejected' );
       expect( promiseB.value ).toBe( 'err' );
     });
 
-    xit("if pA's error handler throws an error `e`, pB is rejected with `e`", function(){
+    it("if pA's error handler throws an error `e`, pB is rejected with `e`", function(){
       var promiseB = promiseA.catch( thisThrowsErr );
       deferralA.reject();
       expect( promiseB.state ).toBe( 'rejected' );

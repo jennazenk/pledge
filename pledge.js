@@ -28,8 +28,53 @@ $Promise.prototype.then = function (success, rejected){
 }
 
 $Promise.prototype.catch = function (func){ //what does .catch do???
-	return this.then(null, func);
+	return this.then(null, func);		//when is catch called ?
 }
+
+// $Promise.prototype.callHandlers = function() {
+// 	var state = this.state;
+// 	var value = this.value;
+// 	var handlerGroups = this.handlerGroups;
+// 	if(this.handlerGroups.length > 0){
+// 		var result ;
+
+// 		this.handlerGroups.forEach(function(handler){ 
+			
+// 			if(state === 'resolved' && handler.successCb){
+// 				try {
+// 					handler.successCb(value);
+// 					result = handler.successCb(value);
+// 					if(result instanceof Deferral) {
+// 						handler.forwarder.$promise = result ;
+// 					} else {
+// 						handler.forwarder.$promise.value = result;
+// 					}
+// 				} catch(result) {
+// 					handler.forwarder.$promise.state = 'rejected';
+// 					handler.forwarder.$promise.value = result;
+// 					handler.forwarder.reject(result);
+// 				}
+					
+// 			} else if(state === 'rejected' && handler.errorCb){	
+// 				try {
+// 					handler.errorCb(value);
+// 					result = handler.successCb(value);
+// 					if(result instanceof Deferral) {
+// 						handler.forwarder.$promise = result;
+// 					} else {
+// 						handler.forwarder.$promise.value = result ;
+// 						// handler.forwarder.$promise.state = 'resolved';
+// 					}	
+// 			} catch(result) {
+// 				handler.forwarder.$promise.value = result ;
+// 				handler.forwarder.$promise.state = 'rejected';
+// 				handler.forwarder.reject(result);
+// 				}
+// 			}
+// 	this.handlerGroups = [];
+// 	})
+// }
+// }
 
 $Promise.prototype.callHandlers = function(){
 	var state = this.state;
@@ -40,11 +85,28 @@ $Promise.prototype.callHandlers = function(){
 		this.handlerGroups.forEach(function(handler){ // forEach creates a new scope
 			if(state === 'resolved' && handler.successCb){
 				var result = handler.successCb(value);
-				handler.forwarder.resolve(result);
+				if(result instanceof Deferral) {
+					handler.forwarder.$promise = result ;
+				} else {
+					try {
+						handler.forwarder.$promise.value = result;
+					}
+					catch(result) {
+						// handler.forwarder.$promise.state = 'rejected';
+						// handler.forwarder.$promise.value = result;
+						handler.forwarder.$promise.reject(result);
+					}
+				}
 			}
 			else if(state === 'rejected' && handler.errorCb){
 				var result = handler.errorCb(value);
 				//handler.forwarder.reject()
+				if(result instanceof Deferral) {
+					handler.forwarder.$promise = result;
+				} else {
+					handler.forwarder.$promise.value = result ;
+					handler.forwarder.$promise.state = 'resolved';
+				}
 			}
 		})
 	this.handlerGroups = [];
